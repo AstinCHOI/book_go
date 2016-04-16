@@ -1,0 +1,87 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Go Chatting</title>
+
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+  <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+
+  <style>
+    .container {
+      margin-top:30px;
+    }
+    #messageList {
+      width:600px;
+      height:320px;
+      padding: 10px 10px 10px 10px;
+    }
+    #inputBox {
+      width:600px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="panel panel-primary" id="messageList"><!-- chat window -->
+      </div>
+    </div>
+    <div class="row">
+      <div id="inputBox">
+        <div class="input-group">
+          <input type="text" class="form-control" id="message" placeholder="Message">
+          <span class="input-group-btn">
+            <button class="btn btn-default" id="send" type="button">Send</button>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var socket = io();
+
+    socket.on('event', function (data) {
+      var msg
+      switch (data.EvtType) {
+      case 'message':
+        msg = data.User + ': ' + data.Text;
+        break;
+      case 'join':
+      	msg = data.User + ' joined.';
+        break;
+      case 'leave':
+      	msg = data.User + ' left.';
+      	break;
+      }
+
+      col = $('<div>').addClass('col-md-12').text(msg)
+      row = $('<div>').addClass('row').append(col)
+      list = $('#messageList').append(row)
+      if (list.children().size() > 15)
+      	list.find('div:first').remove();
+    });
+
+    // send message to server
+    send = function() {
+    	msg = $('#message').val()
+    	if(msg != '') {
+    		socket.emit('message', msg);
+    		$('#message').val('');
+    	}
+    }
+
+    $('#send').click(function() {
+    	send();
+    });
+
+    $('#message').keyup(function(e) {
+    	if(e.keyCode == 13) {
+    		send();
+    	}
+    });
+  </script>
+</body>
+</html>
